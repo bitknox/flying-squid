@@ -96,8 +96,8 @@ module.exports.entity = function (entity, serv, { version }) {
   }
 }
 
-module.exports.player = function (player, serv) {
-  player.commands.add({
+module.exports.server = function (serv) {
+  serv.commands.add({
     base: 'velocity',
     info: 'Push velocity on player(s)',
     usage: '/velocity <player> <x> <y> <z>',
@@ -105,9 +105,13 @@ module.exports.player = function (player, serv) {
     parse (str) {
       return str.match(/(.+?) (\d+) (\d+) (\d+)/) || false
     },
-    action (params) {
-      const selector = player.selectorString(params[1])
-      const vec = new Vec3(parseInt(params[2]), parseInt(params[3]), parseInt(params[4]))
+    action (params, ctx) {
+      const selector = ctx.player ? ctx.player.selectorString(params[1]) : serv.selectorString(params[1])
+      const parsedInt = [parseInt(params[2]), parseInt(params[3]), parseInt(params[4])]
+      for (const int of parsedInt) {
+        if (int > 81) return 'Too much velocity, max is 81.'
+      }
+      const vec = new Vec3(parsedInt[0], parsedInt[1], parsedInt[2])
       selector.forEach(e => e.sendVelocity(vec, vec.scaled(5)))
     }
   })
